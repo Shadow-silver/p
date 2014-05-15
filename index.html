@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>CLaudio Papa's personal site</title>
+      <script src="resources/js/mathlib-min.js"></script>
+      <script>
+window.addEventListener('load', onloadHandler, false);
+
+function onloadHandler()
+{
+	
+	
+	var iFrameLen=1000;
+   // get the canvas DOM element
+   var canvas = document.getElementById('canvas'),
+       ctx = canvas.getContext("2d"),
+       width = canvas.width,
+       height = canvas.height;
+		
+   // data structures - generate initial blobs
+   window.blobList = new BlobList();
+   blobList.blobs = [
+      new Blob(326, 94,  0, 50, "rgba(244,242,95,.9)"),
+	  new Blob(350, 160, 0, 50, "rgba(235,121,9,.9)"),
+      new Blob(300,  136, 0, 40, "rgba(94,160,46,.9)"),      
+      new Blob(420, 142,  0, 40, "rgba(247,105,249,.9)"),
+      new Blob(380, 82,  0, 50, "rgba(47,118,178,.9)")
+	];
+	
+   function drawDisc(x, y, rad, colour)
+   {
+      ctx.fillStyle = colour;
+      ctx.beginPath();
+      ctx.arc(x, y, rad, 0, TWOPI, true);
+      ctx.fill();
+   };
+   
+    
+      
+   var offsetx = 0, offsety = 0;
+   
+   // init main animation loop
+   requestAnimFrame(loop);
+   function loop()
+   {
+      // compute canvas offset within parent window including page view position
+      var el = canvas;
+      offsetx = offsety = 0;
+      do
+      {
+         offsetx += el.offsetLeft;
+         offsety += el.offsetTop;
+      } while (el = el.offsetParent);
+      offsetx = offsetx - window.pageXOffset;
+      offsety = offsety - window.pageYOffset;
+      
+      ctx.save();
+      
+      // clear the left side of the card
+      // the right hand side is already rendered with fixed text
+      ctx.clearRect(0, 0, width, height);
+      
+     
+      // render each edge blob - which react to mouse movement
+      ctx.globalCompositeOperation = 'darker';
+      //blobList.update();
+      blobList.render();
+      
+           
+      requestAnimFrame(loop);
+   };
+   
+   // data structures
+   function BlobList()
+   {
+      this.mousex = this.mousey = 0;
+      this.blobs = [];
+	  this.frametime = (new Date()).getTime();
+	  var me = this;
+      this.interval = setInterval(function () {
+			me.update();
+		}, iFrameLen);
+      this.update = function()
+      {
+		this.frametime = (new Date()).getTime();
+         // all the other blobs can animate based on mouse interaction
+         for (var i = 0,dx,dy,d; i < this.blobs.length; i++)
+         {
+			blob = this.blobs[i];
+			
+		 	blob.goesradius = blob.radius * (Rnd() + 0.5);           
+			blob.startradius = blob.radius;
+			if (blob.goesradius > 100)
+				blob.goesradius = 100;
+			else if (blob.goesradius < 10)
+				blob.goesradius = 10;
+				
+			blob.targetPos.x = blob.position.x + ((Rnd() - 0.5)*20);	
+            blob.targetPos.y = blob.position.y + ((Rnd() - 0.5)*20);			
+            blob.spring = 0.01*(Rnd()+0.5);
+			 
+            
+         }
+      };
+      
+      this.render = function()
+      {
+		 dTime = (new Date()).getTime() - this.frametime;
+         for (var i = 0; i < this.blobs.length; i++)
+         {
+            ctx.save();
+			
+			var blob = this.blobs[i];
+			blob.update();
+			var iVel = (blob.goesradius - blob.startradius)/ iFrameLen;
+			blob.radius = blob.startradius + iVel*dTime;
+            blob.render();
+            ctx.restore();
+         }
+      };
+   };
+   
+   function Blob(x, y, z, radius, colour)
+   {
+      this.origin = new Vector3D(x,y,z);
+      this.position = new Vector3D(x,y,z);
+      this.targetPos = new Vector3D(x,y,z);
+      this.goesradius = radius;
+	  this.startradius = radius;
+      this.radius = radius;
+      this.velocity = new Vector3D(0,0,0);
+      this.colour = colour;
+      this.friction = 0.75;
+      this.spring = 0.05;
+      
+      this.update = function()
+      {
+         this.velocity.x += (this.targetPos.x - this.position.x) * this.spring;
+         this.velocity.x *= this.friction;
+         this.position.x += this.velocity.x;
+         
+         this.velocity.y += (this.targetPos.y - this.position.y) * this.spring;
+         this.velocity.y *= this.friction;
+         this.position.y += this.velocity.y;
+         
+         var dox = this.origin.x - this.position.x,
+             doy = this.origin.y - this.position.y,
+             d = Sqrt(dox * dox + doy * doy);
+         
+         this.targetPos.z = d/150 + 1;
+         this.velocity.z += (this.targetPos.z - this.position.z) * this.spring;
+         this.velocity.z *= this.friction;
+         this.position.z += this.velocity.z;
+         
+         //this.radius = this.originradius * this.position.z;
+         if (this.radius < 1) this.radius = 1;
+      };
+      
+      this.render = function()
+      {
+         ctx.fillStyle = this.colour;
+         ctx.beginPath();
+         ctx.arc(this.position.x, this.position.y, this.radius, 0, TWOPI, true);
+         ctx.fill();
+		 
+      };
+   };
+	
+}
+
+
+// requestAnimFrame shim
+window.requestAnimFrame = (function()
+{
+   return  window.requestAnimationFrame       || 
+           window.webkitRequestAnimationFrame || 
+           window.mozRequestAnimationFrame    || 
+           window.oRequestAnimationFrame      || 
+           window.msRequestAnimationFrame     || 
+           function(callback, element)
+           {
+               window.setTimeout(callback, 1000 /60);
+           };
+})();
+      </script>
+      <style>
+	  body,html
+	  {
+		width:100%;
+		height:100%;
+		padding:0;
+		margin:0;
+	  }
+.card-container
+{
+   text-align: center;
+   margin-bottom: 2.5em;
+}
+.title
+{
+   text-align: center;
+   font-family: Segoe UI Light, Arial, Helvetica;
+   font-size: 2.2em;
+   margin: .5em;
+}
+.info
+{
+   text-align: center;
+   font-family: Segoe UI Light, Arial, Helvetica;
+   font-size: 1.2em;
+   margin: 0.25em;
+}
+
+      </style>
+   </head>
+   
+   <body>
+      <div class="title"><strong>CL</strong>audio <strong>P</strong>apa's  personal site</div>
+      <div class="card-container" style="width:100%">
+         <canvas id="canvas" width="800px" height="250px"></canvas>
+      </div>
+   </body>
+</html>

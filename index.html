@@ -13,19 +13,23 @@ function onloadHandler()
 	
 	var iFrameLen=1000;
    // get the canvas DOM element
-   var canvas = document.getElementById('canvas'),
-       ctx = canvas.getContext("2d"),
-       width = canvas.width,
-       height = canvas.height;
+   
+   var canvas = document.getElementById('canvas');
+   var w = document.getElementById('canvas-container').offsetWidth;
+   canvas.width = w - 2;
+   var ctx = canvas.getContext("2d");
+   var width = canvas.width;
+   var height = canvas.height;
 		
+   
    // data structures - generate initial blobs
    window.blobList = new BlobList();
    blobList.blobs = [
-      new Blob(326, 94,  0, 50, "rgba(244,242,95,.9)"),
-	  new Blob(350, 160, 0, 50, "rgba(235,121,9,.9)"),
-      new Blob(300,  136, 0, 40, "rgba(94,160,46,.9)"),      
-      new Blob(420, 142,  0, 40, "rgba(247,105,249,.9)"),
-      new Blob(380, 82,  0, 50, "rgba(47,118,178,.9)")
+      new Blob((width / 2) - 36, 94,  0, 50, "rgba(244,242,95,.9)"),
+	  new Blob((width / 2) , 160, 0, 50, "rgba(235,121,9,.9)"),
+      new Blob((width / 2) - 20   ,  136, 0, 40, "rgba(94,160,46,.9)"),      
+      new Blob((width / 2) + 70, 142,  0, 40, "rgba(247,105,249,.9)"),
+      new Blob((width / 2) + 30, 82,  0, 50, "rgba(47,118,178,.9)")
 	];
 	
    function drawDisc(x, y, rad, colour)
@@ -59,7 +63,7 @@ function onloadHandler()
       
       // clear the left side of the card
       // the right hand side is already rendered with fixed text
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, canvas.width, height);
       
      
       // render each edge blob - which react to mouse movement
@@ -96,7 +100,7 @@ function onloadHandler()
 			else if (blob.goesradius < 10)
 				blob.goesradius = 10;
 				
-			blob.targetPos.x = blob.position.x + ((Rnd() - 0.5)*20);	
+			blob.targetPos.x = blob.position.x + ((Rnd() - 0.5)*70);	
             blob.targetPos.y = blob.position.y + ((Rnd() - 0.5)*20);			
             blob.spring = 0.01*(Rnd()+0.5);
 			 
@@ -106,6 +110,8 @@ function onloadHandler()
       
       this.render = function()
       {
+		var width = canvas.width;
+		var height = canvas.height;
 		 dTime = (new Date()).getTime() - this.frametime;
          for (var i = 0; i < this.blobs.length; i++)
          {
@@ -114,7 +120,41 @@ function onloadHandler()
 			var blob = this.blobs[i];
 			blob.update();
 			var iVel = (blob.goesradius - blob.startradius)/ iFrameLen;
-			blob.radius = blob.startradius + iVel*dTime;
+			var widthExtraR = width - (blob.position.x + blob.radius);
+			var widthExtraL = blob.position.x - blob.radius;
+			var heightExtraB = height - (blob.position.y + blob.radius);
+			var heightExtraT = blob.position.y - blob.radius;
+			if (heightExtraB < 0) 
+			{
+				blob.radius = blob.radius + heightExtraB;
+				blob.targetPos.y = blob.position.y - heightExtraB;
+			}
+			else if (heightExtraT < 0)
+			{	
+				blob.radius = blob.radius + heightExtraT;
+				blob.targetPos.y = blob.position.y + heightExtraT;
+				if (blob.radius < 0 )				
+					blob.radius = 5;
+			}
+			else
+			{
+				if (widthExtraR < 0) 
+				{
+					blob.radius = blob.radius + widthExtraR;
+					blob.targetPos.x = blob.position.x + widthExtraR;
+					console.log(widthExtraR);
+				}
+				else if (widthExtraL < 0)
+				{	
+					blob.radius = blob.radius + widthExtraL;
+					blob.targetPos.x = blob.position.x - widthExtraL;
+					if (blob.radius < 0 )				
+						blob.radius = 5;
+				}
+					blob.radius = blob.startradius + iVel*dTime;
+				if (blob.radius < 0 )				
+					blob.radius = 5;
+			}
             blob.render();
             ctx.restore();
          }
@@ -183,9 +223,15 @@ window.requestAnimFrame = (function()
                window.setTimeout(callback, 1000 /60);
            };
 })();
+window.onresize = function(event) {
+	var canvas = document.getElementById('canvas');
+	var w = document.getElementById('canvas-container').offsetWidth;
+	canvas.width = w - 2;
+};
       </script>
       <style>
-	  body,html
+	  body,
+	  html
 	  {
 		width:100%;
 		height:100%;
@@ -202,23 +248,33 @@ window.requestAnimFrame = (function()
    text-align: center;
    font-family: Segoe UI Light, Arial, Helvetica;
    font-size: 2.2em;
-   margin: .5em;
+   padding: .5em;
 }
-.info
+.container
 {
-   text-align: center;
-   font-family: Segoe UI Light, Arial, Helvetica;
-   font-size: 1.2em;
-   margin: 0.25em;
+	background-color:#fff;
+	border-left: 1px solid #f6cb58;
+	border-right: 1px solid #f6cb58;
+	position:relative; /* needed for footer positioning*/
+	margin:0 auto; /* center, not in IE5 */
+	/*width:1100px;*/
+	padding:0;
+	height:auto !important; /* real browsers */
+	height:100%; /* IE6: treaded as min-height*/
+
+	min-height:100%; /* real browsers */
+	padding-bottom: 150px;
 }
 
       </style>
    </head>
    
    <body>
-      <div class="title"><strong>CL</strong>audio <strong>P</strong>apa's  personal site</div>
-      <div class="card-container" style="width:100%">
-         <canvas id="canvas" width="800px" height="250px"></canvas>
-      </div>
+	  <div class="container">
+		  <div class="title"><strong>CL</strong>audio <strong>P</strong>apa's  personal site</div>
+		  <div id="canvas-container" class="card-container" style="width:100%">
+			 <canvas id="canvas" height="250px">&nbsp;</canvas>
+		  </div>
+	  </div>
    </body>
 </html>

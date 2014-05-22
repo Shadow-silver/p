@@ -22,7 +22,7 @@ body, html
 	border-right: 1px solid #f6cb58;
 	position:relative; /* needed for footer positioning*/
 	margin:0 auto; /* center, not in IE5 */
-	width: @selectors_width ;
+	max-width: @selectors_width ;
 	padding:0;
 	/*height:auto !important;*/ /* real browsers */
 	height:100%; /* IE6: treaded as min-height*/
@@ -49,12 +49,20 @@ body, html
 	
 	margin: 0;
 	padding:0;
-	width: (@selectors_width + 1);
+	max-width: (@selectors_width + 1);
 	display:block;
 	position:absolute;
 	bottom:0;  
 	height:150px;   /* Height of the footer */
+	
+	a {
+		text-decoration: none;
+		this:visited {
+			color:green;
+		}
+	}
 }
+
 
 .selector
 {
@@ -123,4 +131,13 @@ body, html
 	{
 		padding-left: @selectors_padding_left;
 	}
+}
+
+
+/*** ABOUT ME ***/
+.about-me-container
+{
+	margin: auto;
+	width: 60%;
+	min-width: 200px;
 }

@@ -5,6 +5,9 @@
 @violet-pastel: rgba(247,105,249,.9);
 @selectors_width:900px;
 @selectors_padding_left:20px;
+@link_color: black;
+@font-dim: 18px;
+
 body, html
 {
 	width:100%;
@@ -13,8 +16,28 @@ body, html
 	margin:0;
 	overflow: auto;
 	font-family: Segoe UI Light, Arial, Helvetica;
+	font-size: @font-dim;
 }
 
+/* Reset dimension */
+h1,h2,h3,h4,p,strong,em, ul, li, table, th, td, thead, tbody,a
+{
+	font-size:@font-dim;
+}
+
+a, a:hover, a:visited
+{
+	text-decoration: none;
+	color:@link_color;
+}
+
+h1
+{
+	font-size: @font-dim + 3;
+	strong {
+		font-size: @font-dim + 5;
+	}
+}
 .container
 {
 	background-color:#fff;
@@ -57,8 +80,12 @@ body, html
 	
 	a {
 		text-decoration: none;
-		this:visited {
-			color:green;
+		color: @link_color;
+		&:visited {
+			color: @link_color;
+		}
+		&:hover h2{
+			font-size: @font-dim+1;
 		}
 	}
 }
@@ -137,7 +164,22 @@ body, html
 /*** ABOUT ME ***/
 .about-me-container
 {
+	height: 100%;
+	margin-bottom: 150px;
 	margin: auto;
 	width: 60%;
 	min-width: 200px;
+	overflow:auto;
+}
+
+.projects-container
+{
+	width: 95%;
+	margin:auto;
+	dd a{
+		color: red;
+		&:hover {
+			text-decoration:underline;
+		}
+	}
 }
